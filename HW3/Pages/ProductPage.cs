@@ -4,9 +4,9 @@ using OpenQA.Selenium.Interactions;
 
 namespace HW3.Pages
 {
-    class ProductsPage : AbstractPage
+    class ProductPage : AbstractPage
     {
-        public ProductsPage(IWebDriver driver)
+        public ProductPage(IWebDriver driver)
         {
             this.driver = driver;
             PageFactory.InitElements(driver, this);

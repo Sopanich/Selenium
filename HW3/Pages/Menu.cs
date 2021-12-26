@@ -27,13 +27,13 @@ namespace HW3.Pages
             return chkMenu.Text;
         }
 
-        public ProductsPage GoToProducts()
+        public ProductPage GoToProducts()
         {
             IAction action = new Actions(driver)
                 .Click(ProductsLnk);
             action.Perform();
 
-            return new ProductsPage(driver);
+            return new ProductPage(driver);
         }
 
         public void Logout()
