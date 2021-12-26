@@ -1,29 +1,15 @@
 using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;
-using SeleniumExtras.WaitHelpers;
 using System;
+using HW3.Pages;
 
 namespace HW3
 {
     public class Tests
     {
         private IWebDriver driver;
-        private WebDriverWait wait;
 
-        public bool IsElementNotPresent(By locator)
-        {
-            try
-            {
-                driver.FindElement(locator);
-            }
-            catch (NoSuchElementException)
-            {
-                return true;
-            }
-            return false;
-        }
 
         [SetUp]
         public void Setup()
@@ -31,72 +17,49 @@ namespace HW3
             driver = new ChromeDriver();
             driver.Manage().Window.Maximize();
             driver.Url = "http://localhost:5000";
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            driver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(30);
 
 
-            wait = new WebDriverWait(driver, TimeSpan.FromSeconds(1));
-            wait.Timeout = TimeSpan.FromSeconds(1);
-            wait.IgnoreExceptionTypes(typeof(NoSuchElementException));
 
-            wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='Name']"))).SendKeys("user");
-
-            driver.FindElement(By.XPath("//*[@id='Password']")).SendKeys("user");
-            driver.FindElement(By.XPath("//input[@type='submit']")).Click();
-
-            Assert.AreEqual(driver.FindElement(By.XPath("//h2")).Text, "Home page");
+            LoginPage login = new LoginPage(driver);
+            login.login("user", "user");
+            Assert.AreNotEqual(login.GetNamePage(), "Login");
         }
 
         [Test]
         public void AddProduct()
         {
-            driver.FindElement(By.XPath("//a[@href = '/Product']")).Click();
-            driver.FindElement(By.XPath("//a[contains(text(),'Create new')]")).Click();
+            Menu menuPage = new Menu(driver);
+            ProductPage product = menuPage.GoToProducts();
+            CreateProduct create = product.AddNewProduct();
+            create.Create();
 
-            driver.FindElement(By.XPath("//*[@id='ProductName']")).SendKeys("Шоколад");
-            new SelectElement(driver.FindElement(By.XPath("//*[@id='CategoryId']"))).SelectByText("Confections");
-            new SelectElement(driver.FindElement(By.XPath("//*[@id='SupplierId']"))).SelectByText("Bigfoot Breweries");
-            driver.FindElement(By.XPath("//*[@id='UnitPrice']")).SendKeys("100");
-            driver.FindElement(By.XPath("//*[@id='QuantityPerUnit']")).SendKeys("10");
-            driver.FindElement(By.XPath("//*[@id='UnitsInStock']")).SendKeys("10");
-            driver.FindElement(By.XPath("//*[@id='UnitsOnOrder']")).SendKeys("10");
-            driver.FindElement(By.XPath("//*[@id='ReorderLevel']")).SendKeys("10");
-
-            driver.FindElement(By.XPath("//input[@type='submit']")).Click();
-
-            Assert.IsTrue(IsElementNotPresent(By.XPath("//*[h2='Product editing']")));
+        
         }
 
         [Test]
-        public void FindProduct()
+        public void CheckProduct()
         {
-            driver.FindElement(By.XPath("//a[@href = '/Product']")).Click();
-            driver.FindElement(By.XPath("//a[contains(text(),'Шоколад')]")).Click();
-
-            Assert.AreEqual(driver.FindElement(By.XPath("//*[@id='ProductName']")).GetAttribute("value"), "Шоколад");
-            Assert.AreEqual(driver.FindElement(By.XPath("//option[@selected='selected'][contains(text(),'Confections')]")).Text, "Confections");
-            Assert.AreEqual(driver.FindElement(By.XPath("//option[@selected='selected'][contains(text(),'Bigfoot Breweries')]")).Text, "Bigfoot Breweries");
-            Assert.AreEqual(driver.FindElement(By.XPath("//*[@id='UnitPrice']")).GetAttribute("value"), "100,0000");
-            Assert.AreEqual(driver.FindElement(By.XPath("//*[@id='QuantityPerUnit']")).GetAttribute("value"), "10");
-            Assert.AreEqual(driver.FindElement(By.XPath("//*[@id='UnitsInStock']")).GetAttribute("value"), "10");
-            Assert.AreEqual(driver.FindElement(By.XPath("//*[@id='UnitsOnOrder']")).GetAttribute("value"), "10");
-            Assert.AreEqual(driver.FindElement(By.XPath("//*[@id='ReorderLevel']")).GetAttribute("value"), "10");
+            Menu menuPage = new Menu(driver);
+            ProductPage product = menuPage.GoToProducts();
+            EditProduct edit = product.ViewProduct();
+            edit.Check();
         }
 
         [Test]
         public void RemoveProduct()
         {
-            driver.FindElement(By.XPath("//a[@href = '/Product']")).Click();
-            driver.FindElement(By.XPath("(//*[@data-remove])[78]")).Click();
-
-            driver.SwitchTo().Alert().Accept();
+            Menu menuPage = new Menu(driver);
+            ProductPage product = menuPage.GoToProducts();
+            product.Remove();
         }
 
         [TearDown]
         public void TearDown()
         {
-            driver.FindElement(By.XPath("//a[contains(@href,'Logout')]")).Click();
-
-            Assert.AreEqual(driver.FindElement(By.XPath("//h2")).Text, "Login");
-
+            Menu menu = new Menu(driver);
+            menu.Logout();
             driver.Quit();
         }
 
